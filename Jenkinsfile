@@ -1,5 +1,15 @@
 
-stage('Deploy to K8s') {
+
+pipeline {
+    agent any
+    stages {
+        stage('Checkout') {
+            steps {
+                echo '拉取代码成功...'
+                // 这里是你原本拉代码的步骤
+            }
+        }
+        stage('Deploy to K8s') {
             steps {
                 echo '准备发布 Fruvée 后台系统到生产环境...'
                 
@@ -13,3 +23,5 @@ stage('Deploy to K8s') {
                 sh './kubectl apply -f k8s-deploy.yaml'
             }
         }
+    }
+}
