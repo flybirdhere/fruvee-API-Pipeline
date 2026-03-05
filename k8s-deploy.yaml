@@ -1,0 +1,33 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fruvee-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fruvee
+  template:
+    metadata:
+      labels:
+        app: fruvee
+    spec:
+      containers:
+      - name: fruvee-app
+        image: nginx:latest  # 测试阶段我们先用 nginx 镜像代替，跑通后再换成你真实的 API 镜像
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fruvee-service
+spec:
+  selector:
+    app: fruvee
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: NodePort
