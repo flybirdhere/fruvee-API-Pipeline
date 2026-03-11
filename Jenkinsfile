@@ -10,7 +10,7 @@ pipeline {
               containers:
               # 第一个容器：专门负责打包和推送的 Docker 专家
               - name: docker
-                image: docker:27-cli
+                image: docker:24.0.7-cli
                 command: ['cat']
                 tty: true
                 volumeMounts:
@@ -69,11 +69,25 @@ pipeline {
                 container('kubectl') {
                     echo '准备发布 Fruvée 后台到生产环境...'
                     
-                    // 用刚刚推送到云端的真实镜像名，替换图纸里的占位符
+                    // 1. 明确打印日志，看看是不是 sed 替换文件卡住了
+                    sh 'echo "--> 正在执行文件替换..."'
                     sh 'sed -i "s|FRUVEE_IMAGE_PLACEHOLDER|${IMAGE_TAG}|g" k8s-deploy.yaml'
                     
-                    // 原生 kubectl 执行部署
-                    sh 'kubectl apply -f k8s-deploy.yaml'
+                    // 2. 核心排雷：暴力清空所有可能劫持流量的代理变量，并开启详细日志
+                    sh '''
+                        echo "--> 正在清理容器内可能存在的幽灵代理..."
+                        export HTTP_PROXY=""
+                        export HTTPS_PROXY=""
+                        export http_proxy=""
+                        export https_proxy=""
+                        
+                        echo "--> 测试与 K8s 大脑的连通性..."
+                        kubectl cluster-info
+                        
+                        echo "--> 真正执行发布动作..."
+                        # --v=6 会把 kubectl 底层的每一次请求都打印出来，让卡点无所遁形
+                        kubectl apply -f k8s-deploy.yaml --v=6
+                    '''
                 }
             }
         }
