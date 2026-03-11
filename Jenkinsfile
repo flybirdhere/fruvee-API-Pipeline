@@ -10,7 +10,7 @@ pipeline {
               containers:
               # 第一个容器：专门负责打包和推送的 Docker 专家
               - name: docker
-                image: docker:24.0.7-cli
+                image: docker:27-cli
                 command: ['cat']
                 tty: true
                 volumeMounts:
