@@ -1,6 +1,27 @@
 
 pipeline {
-    agent any
+    // 核心架构升级：告诉 K8s 派出一个“自带 Docker 装备”并且挂载了物理机引擎的临时工
+    agent {
+        kubernetes {
+            yaml '''
+            apiVersion: v1
+            kind: Pod
+            spec:
+              containers:
+              - name: docker
+                image: docker:24.0.7-cli
+                command: ['cat']
+                tty: true
+                volumeMounts:
+                - mountPath: /var/run/docker.sock
+                  name: docker-sock
+              volumes:
+              - name: docker-sock
+                hostPath:
+                  path: /var/run/docker.sock
+            '''
+        }
+    }
     
     environment {
         // ⚠️ 请把这里的 your-dockerhub-username 换成你真实的 Docker Hub 用户名
